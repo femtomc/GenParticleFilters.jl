@@ -12,7 +12,7 @@ the model's default proposal.
 function pf_update!(state::ParticleFilterView, new_args::Tuple,
                     argdiffs::Tuple, observations::ChoiceMap)
     n_particles = length(state.traces)
-    for i=1:n_particles
+    Threads.@threads for i=1:n_particles
         state.new_traces[i], increment, _, discard =
             update(state.traces[i], new_args, argdiffs, observations)
         if !isempty(discard)
@@ -34,7 +34,7 @@ are passed to the `translator` when it is called.
 """
 function pf_update!(state::ParticleFilterView, translator; translator_args...)
     n_particles = length(state.traces)
-    for i=1:n_particles
+    Threads.@threads for i=1:n_particles
         state.new_traces[i], log_weight =
             translator(state.traces[i]; translator_args...)
         state.log_weights[i] += log_weight
@@ -75,7 +75,7 @@ function pf_update!(state::ParticleFilterView, new_args::Tuple,
                     argdiffs::Tuple, observations::ChoiceMap,
                     proposal::GenerativeFunction, proposal_args::Tuple)
     n_particles = length(state.traces)
-    for i=1:n_particles
+    Threads.@threads for i=1:n_particles
         (prop_choices, prop_weight, _) =
             propose(proposal, (state.traces[i], proposal_args...))
         constraints = merge(observations, prop_choices)
@@ -147,7 +147,7 @@ function pf_update!(state::ParticleFilterView, new_args::Tuple,
                     fwd_proposal::GenerativeFunction, fwd_args::Tuple,
                     bwd_proposal::GenerativeFunction, bwd_args::Tuple)
     n_particles = length(state.traces)
-    for i=1:n_particles
+    Threads.@threads for i=1:n_particles
         (fwd_choices, fwd_weight, _) =
             propose(fwd_proposal, (state.traces[i], fwd_args...))
         constraints = merge(observations, fwd_choices)

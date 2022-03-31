@@ -37,7 +37,8 @@ for `n_iters`.
 function pf_move_accept!(state::ParticleFilterView,
                          kern, kern_args::Tuple=(), n_iters::Int=1)
     # Potentially rejuvenate each trace
-    for (i, trace) in enumerate(state.traces)
+    Threads.@threads for i in 1 : length(state.traces)
+        trace = state.traces[i]
         for k = 1:n_iters
             trace, accept = kern(trace, kern_args...)
             @debug "Accepted: $accept"
@@ -68,9 +69,10 @@ online inference," Preprint series. Statistical Research Report, 2013.
 function pf_move_reweight!(state::ParticleFilterView,
                            kern, kern_args::Tuple=(), n_iters::Int=1)
     # Move and reweight each trace
-    for (i, trace) in enumerate(state.traces)
+    Threads.@threads for i in 1 : length(state.traces)
         weight = 0
-        for k = 1:n_iters
+        trace = state.traces[i]
+        for k = 1 : n_iters
             trace, rel_weight = kern(trace, kern_args...)
             weight += rel_weight
             @debug "Rel. Weight: $rel_weight"
